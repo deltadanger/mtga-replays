@@ -1,0 +1,20 @@
+/* Generic styles */
+* {
+    box-sizing: border-box
+}
+
+[v-cloak] {
+  display: none;
+}
+
+button {
+    cursor: pointer;
+}
+
+body.test {
+    background: url('/static/img/test_background.png') repeat;
+}
+
+body.dev {
+    background: url('/static/img/dev_background.png') repeat;
+}

@@ -1,0 +1,27 @@
+<!doctype html>
+{% load static %}
+{% load hijack_tags %}
+
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <link rel="icon" href="{% static 'img/favicon.png' %}">
+
+    <title>{% block title %}{% endblock %}</title>
+
+    {% block styles %}
+        <link rel="stylesheet" href="{% static "css/base.css" %}">
+        <link rel="stylesheet" type="text/css" href="{% static 'hijack/hijack-styles.css' %}"/>
+    {% endblock %}
+</head>
+
+
+<body{% if IS_TEST %} class="test"{% endif %}{% if IS_DEV %} class="dev"{% endif %}>
+{% hijack_notification %}
+
+{% block page_title %}{% endblock %}
+{% block content %}{% endblock %}
+
+{% block scripts %}{% endblock %}
+</body>
+</html>

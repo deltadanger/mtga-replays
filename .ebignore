@@ -1,0 +1,25 @@
+
+
+
+# Environment
+.idea
+.DS_Store
+*.py[co]
+__pycache__
+
+# Bulk files
+/static/
+/media/
+/logs/
+/venv/
+node_modules/
+
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
+
+# Other
+geckodriver.log
+cache/adwords_cache

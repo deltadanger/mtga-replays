@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load render_bundle from webpack_loader %}
+
+{% block title %}MTGA Replays{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+{% render_bundle 'app' %}
+{% if not IS_DEV %}
+    {% render_bundle 'chunk-vendors' %}
+{% endif %}
+{% endblock %}
+
+{% block styles %}
+{{ block.super }}
+<style>
+    h1 {
+        font-weight: bold;
+    }
+
+    h1 small {
+        font-weight: normal;
+    }
+</style>
+{% endblock %}
+
+{% block page_title %}
+<h1>
+    MTGA Replays
+</h1>
+{% endblock %}
+
+{% block content %}
+<div id="app">
+    <app></app>
+</div>
+{% endblock %}
