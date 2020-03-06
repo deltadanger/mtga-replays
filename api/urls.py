@@ -10,5 +10,5 @@ router = DefaultRouter() if settings.DEBUG else SimpleRouter()
 
 urlpatterns = [
     url(r'^', include(router.urls)),
-    url(r'^example/$', views.ExampleView.as_view()),
+    url(r'^board$', views.BoardView.as_view()),
 ]

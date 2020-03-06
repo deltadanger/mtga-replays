@@ -3,6 +3,6 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 
 
-class ExampleView(APIView):
-    def get(self):
+class BoardView(APIView):
+    def get(self, request):
         return JsonResponse({'blah': 'asd'})
