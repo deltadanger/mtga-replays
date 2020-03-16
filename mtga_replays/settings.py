@@ -76,6 +76,7 @@ INSTALLED_APPS = [
     'rest_framework',
 
     'core',
+    'api',
 ]
 
 MIDDLEWARE = [
@@ -233,11 +234,11 @@ LOGGING = {
     },
     'loggers': {
         '': {
-            'handlers': ['console', 'log_file', 'debug_log_file'],
+            'handlers': ['console'] if IS_DEV else ['console', 'log_file', 'debug_log_file'],
             'level': 'DEBUG',
         },
         'django': {
-            'handlers': ['console', 'log_file', 'debug_log_file'],
+            'handlers': ['console'] if IS_DEV else ['console', 'log_file', 'debug_log_file'],
             'level': 'DEBUG',
             'propagate': True,
         },
