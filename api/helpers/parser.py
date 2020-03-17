@@ -1,6 +1,8 @@
 import json
 import logging
 
+import requests
+
 from api.models import Game
 from api.resources.names import NAME_FROM_NAME_ID, NAME_FROM_CARD_ID
 
@@ -80,9 +82,11 @@ class MtgaLogParser:
 
                 i += 1
 
-        except Exception as e:
+        except Exception:
             logger.error(f"Game {len(self.games) + 1}, gameStateId {game.board_states[-1]['gameStateId'] if game else 'None'}")
             raise
+
+        self.fetch_image_urls()
 
     def parse_game_state(self, game, game_state_message):
         """Return True when the game is over."""
@@ -151,3 +155,21 @@ class MtgaLogParser:
                             f"mapping[orig_id({orig_id})]={game.instance_mapping.get(orig_id)} ; "
                             f"mapping[new_id({new_id})]={game.instance_mapping.get(new_id)}"
                         )
+
+    def fetch_image_urls(self):
+        logger.info("Fetching images...")
+        for game in self.games:
+            for card in game.instance_mapping.values():
+                if card['id'] in game.image_mapping:
+                    continue
+                response = requests.get(f"https://api.scryfall.com/cards/arena/{card['id']}")
+                if response.status_code == 404:
+                    response = requests.get(f"https://api.scryfall.com/cards/named?exact={card['name']}")
+
+                card_image_details = response.json()['image_uris']
+                game.image_mapping[card['id']] = {
+                    'normal': card_image_details.get('normal', card_image_details.get('small')),
+                    'large': card_image_details.get('large', card_image_details.get('normal', card_image_details.get('small'))),
+                }
+        logger.info("Done.")
+

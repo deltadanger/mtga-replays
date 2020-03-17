@@ -5,19 +5,12 @@
 </template>
 
 <script>
+export default {
 
-  import axios from 'axios';
+  name: 'Board',
 
-  export default {
-
-    name: 'Board',
-
-    data: () => ({
-      result: null,
-    }),
-
-    created() {
-      axios.get('/api/board').then(result => this.result = result.data);
-    },
-  }
+  props: {
+    game: Object,
+  },
+}
 </script>

@@ -15,6 +15,7 @@ class Command(BaseCommand):
     #     parser.add_argument('--dry-run', action='store_true', help='List the requests, do not perform the update.')
 
     def handle(self, *args, **options):
+
         for path, dirs, files in os.walk("H:\Magic The Gathering Arena\MTGA\MTGA_Data\Logs\Logs"):
             for file in files:
                 full_path = os.path.join(path, file)

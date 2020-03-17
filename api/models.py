@@ -13,5 +13,7 @@ class Game(models.Model):
     board_states = JSONField(default=[])
     instance_mapping = JSONField(default={})
 
+    image_mapping = JSONField(default={})
+
     def __str__(self):
         return f"{self.current_player} VS {self.opponent}"
