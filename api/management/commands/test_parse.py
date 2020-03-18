@@ -22,5 +22,3 @@ class Command(BaseCommand):
                 logger.info(file)
                 parser = MtgaLogParser(full_path)
                 parser.fetch_infos()
-                logger.info(parser.games)
-                logger.info(len(parser.games))

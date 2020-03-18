@@ -120,12 +120,10 @@ if IS_TEST:
     DATABASE_CNF_FILE = 'config/intranet_db_tst.cnf'
 
 DATABASES = {
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.mysql',
-    #     'OPTIONS': {
-    #         'read_default_file': os.path.join(BASE_DIR, DATABASE_CNF_FILE),
-    #     },
-    # }
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'database.sqlite'),
+    }
 }
 
 # Password validation

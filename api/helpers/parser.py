@@ -20,7 +20,7 @@ class MtgaLogParser:
         with open(log_path, 'r') as f:
             self.log_lines = f.readlines()
 
-        self.games = []
+        self.current_game_index = 0
 
     def fetch_infos(self):
         game = None
@@ -41,6 +41,7 @@ class MtgaLogParser:
                 if 'Event.MatchCreated' in line:
                     logger.info('Game Start')
                     game = Game()
+                    self.current_game_index += 1
 
                 # Get players info
                 if 'MatchGameRoomStateChangedEvent' in line:
@@ -56,7 +57,7 @@ class MtgaLogParser:
                             game.opponent, game.current_player = players
 
                     if game_room.get('stateType') == 'MatchGameRoomStateType_MatchCompleted':
-                        self.games.append(game)
+                        game.save()
                         game = None
                         logger.info('Game End')
 
@@ -64,7 +65,7 @@ class MtgaLogParser:
                 if 'GreToClientEvent' in line:
                     i += 1
                     if self.log_lines[i].strip() == "[Message summarized because one or more GameStateMessages exceeded the 50 GameObject or 50 Annotation limit.]":
-                        logger.warning(f"Missing game state details: Game {len(self.games) + 1}, gameStateId {game.board_states[-1]['gameStateId'] if game else 'None'}")
+                        logger.warning(f"Missing game state details: Game {self.current_game_index}, gameStateId {game.board_states[-1]['gameStateId'] if game else 'None'}")
                         continue
 
                     payload = json.loads(self.log_lines[i])
@@ -83,10 +84,8 @@ class MtgaLogParser:
                 i += 1
 
         except Exception:
-            logger.error(f"Game {len(self.games) + 1}, gameStateId {game.board_states[-1]['gameStateId'] if game else 'None'}")
+            logger.error(f"Game {self.current_game_index}, gameStateId {game.board_states[-1]['gameStateId'] if game else 'None'}")
             raise
-
-        self.fetch_image_urls()
 
     def parse_game_state(self, game, game_state_message):
         """Return True when the game is over."""
@@ -107,6 +106,10 @@ class MtgaLogParser:
             for game_object in game_state_message.get('gameObjects', []):
 
                 if game_object['type'] != 'GameObjectType_Card':
+                    continue
+
+                if 'name' not in game_object:
+                    # Happens when a card is taken apart, face down
                     continue
 
                 card_details = {
@@ -155,21 +158,3 @@ class MtgaLogParser:
                             f"mapping[orig_id({orig_id})]={game.instance_mapping.get(orig_id)} ; "
                             f"mapping[new_id({new_id})]={game.instance_mapping.get(new_id)}"
                         )
-
-    def fetch_image_urls(self):
-        logger.info("Fetching images...")
-        for game in self.games:
-            for card in game.instance_mapping.values():
-                if card['id'] in game.image_mapping:
-                    continue
-                response = requests.get(f"https://api.scryfall.com/cards/arena/{card['id']}")
-                if response.status_code == 404:
-                    response = requests.get(f"https://api.scryfall.com/cards/named?exact={card['name']}")
-
-                card_image_details = response.json()['image_uris']
-                game.image_mapping[card['id']] = {
-                    'normal': card_image_details.get('normal', card_image_details.get('small')),
-                    'large': card_image_details.get('large', card_image_details.get('normal', card_image_details.get('small'))),
-                }
-        logger.info("Done.")
-
