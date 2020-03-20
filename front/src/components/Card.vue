@@ -1,16 +1,19 @@
 <template>
-  <v-container>
-    <h1>Blah</h1>
-  </v-container>
+  <div>
+    <v-img :src="card.url_normal" height="100px" contain/>
+  </div>
 </template>
 
 <script>
 export default {
 
-  name: 'Board',
+  name: 'Card',
 
   props: {
-    game: Object,
+    card: Object,
   },
 }
 </script>
+
+<style scoped lang="scss">
+</style>

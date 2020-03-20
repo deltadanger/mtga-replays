@@ -1,5 +1,6 @@
 import json
 import logging
+from copy import deepcopy
 
 import requests
 
@@ -15,6 +16,8 @@ class ParserException(Exception):
 
 
 class MtgaLogParser:
+    _image_cache = {}
+
     def __init__(self, log_path):
 
         with open(log_path, 'r') as f:
@@ -52,9 +55,9 @@ class MtgaLogParser:
                     if game_room.get('stateType') == 'MatchGameRoomStateType_Playing':
                         players = game_room['gameRoomConfig']['reservedPlayers']
                         if players[0]['userId'] == current_player_id:
-                            game.current_player, game.opponent = players
+                            game.player, game.opponent = players
                         else:
-                            game.opponent, game.current_player = players
+                            game.opponent, game.player = players
 
                     if game_room.get('stateType') == 'MatchGameRoomStateType_MatchCompleted':
                         game.save()
@@ -65,96 +68,223 @@ class MtgaLogParser:
                 if 'GreToClientEvent' in line:
                     i += 1
                     if self.log_lines[i].strip() == "[Message summarized because one or more GameStateMessages exceeded the 50 GameObject or 50 Annotation limit.]":
-                        logger.warning(f"Missing game state details: Game {self.current_game_index}, gameStateId {game.board_states[-1]['gameStateId'] if game else 'None'}")
+                        logger.warning(f"Missing game state details: Game {self.current_game_index}, line {self.log_lines[i]}")
                         continue
 
                     payload = json.loads(self.log_lines[i])
 
                     for message in payload['greToClientEvent'].get('greToClientMessages', []):
                         if message['type'] == 'GREMessageType_ConnectResp':
-                            game.current_player_deck = [
+                            game.player_deck = [
                                 NAME_FROM_CARD_ID[card_id]
                                 for card_id in message['connectResp']['deckMessage']['deckCards']
                             ]
                             continue
 
-                        if message['type'] in ['GREMessageType_GameStateMessage', 'GREMessageType_QueuedGameStateMessage']:
-                            self.parse_game_state(game, message['gameStateMessage'])
+                        if message['type'] in [
+                            'GREMessageType_GameStateMessage',
+                            'GREMessageType_QueuedGameStateMessage',
+                        ]:
+                            self.parse_game_state(game, message)
 
                 i += 1
 
         except Exception:
-            logger.error(f"Game {self.current_game_index}, gameStateId {game.board_states[-1]['gameStateId'] if game else 'None'}")
+            logger.error(f"Game {self.current_game_index}, line {self.log_lines[i]}")
             raise
 
-    def parse_game_state(self, game, game_state_message):
+    def parse_game_state(self, game, message):
         """Return True when the game is over."""
 
-        # Board update
-        if game_state_message['type'] in ['GameStateType_Diff', 'GameStateType_Full']:
-            # Check board state
-            if len(game.board_states) > 0 and game_state_message['prevGameStateId'] != game.board_states[-1]['gameStateId']:
-                logger.warning(
-                    f"Previous game state do not match. Got {game_state_message['prevGameStateId']}, "
-                    f"expected {game.board_states[-1]['gameStateId']}"
-                )
+        if message['type'] in ['GREMessageType_GameStateMessage', 'GREMessageType_QueuedGameStateMessage']:
+            game_state_message = message['gameStateMessage']
 
-            # Save board state
-            game.board_states += [game_state_message]
+            if game_state_message['type'] == 'GameStateType_Full':
+                game_state = {
+                    'zones': {
+                        'player': {
+                            'ZoneType_Library': [],
+                            'ZoneType_Hand': [],
+                            'ZoneType_Graveyard': [],
+                            'ZoneType_Revealed': [],
+                        },
+                        'opponent': {
+                            'ZoneType_Library': [],
+                            'ZoneType_Hand': [],
+                            'ZoneType_Graveyard': [],
+                            'ZoneType_Revealed': [],
+                        },
+                        'neutral': {
+                            'ZoneType_Exile': [],
+                            'ZoneType_Battlefield': [],
+                            'ZoneType_Stack': [],
+                            'ZoneType_Pending': [],
+                        },
+                    },
+                    'player_state': {
+                        'player': {
+                            'lifeTotal': 20,
+                        },
+                        'opponent': {
+                            'lifeTotal': 20,
+                        },
+                    },
+                    'card_states': {},
+                }
 
-            # Register mapping between instance id and name of card
+            elif game_state_message['type'] == 'GameStateType_Diff':
+                try:
+                    game_state = deepcopy(game.game_states[-1])
+                except KeyError:
+                    raise ParserException(f"Got 'GameStateType_Diff' but no previous board states")
+
+            else:
+                raise ParserException(f"Got unhandled GameStateType: {game_state_message['type']}")
+
+            # Set players state
+            for player in game_state_message.get('players', []):
+                if 'lifeTotal' in player:
+                    if game.player['systemSeatId'] == player['systemSeatNumber']:
+                        game_state['player_state']['player']['lifeTotal'] = player['lifeTotal']
+
+                    if game.opponent['systemSeatId'] == player['systemSeatNumber']:
+                        game_state['player_state']['opponent']['lifeTotal'] = player['lifeTotal']
+
+            # Get zone card instances
+            for zone in game_state_message.get('zones', []):
+                player_key = 'neutral'
+                if zone.get('ownerSeatId') == game.player['systemSeatId']:
+                    player_key = 'player'
+                if zone.get('ownerSeatId') == game.opponent['systemSeatId']:
+                    player_key = 'opponent'
+
+                game_state['zones'][player_key][zone['type']] = zone.get('objectInstanceIds', [])
+
+            # Get card states
+            game_state['card_states']['tapped'] = {}
+            game_state['card_states']['summoning_sickness'] = {}
+            game_state['card_states']['attackers'] = {}
+            game_state['card_states']['blockers'] = {}
+            game_state['card_states']['card_controller'] = {}
             for game_object in game_state_message.get('gameObjects', []):
 
-                if game_object['type'] != 'GameObjectType_Card':
+                if game_object['type'] not in ['GameObjectType_Card']:  # TODO: Handle tokens: , 'GameObjectType_Token']:
                     continue
 
-                if 'name' not in game_object:
-                    # Happens when a card is taken apart, face down
-                    continue
+                if game_object.get('isTapped'):
+                    game_state['card_states']['tapped'][game_object['instanceId']] = True
 
-                card_details = {
-                    'id': game_object['grpId'],
-                    'name': NAME_FROM_NAME_ID[game_object['name']],
-                    'types': game_object.get('cardTypes'),
-                    'subtypes': game_object.get('subtypes'),
-                }
-                game.instance_mapping[game_object['instanceId']] = card_details
+                if game_object.get('hasSummoningSickness'):
+                    game_state['card_states']['summoning_sickness'][game_object['instanceId']] = True
 
-                if game_object['ownerSeatId'] == game.current_player['systemSeatId']:
-                    game.current_player_played_cards.append(card_details)
+                if game_object.get('attackState') == 'AttackState_Attacking':
+                    game_state['card_states']['attackers'][game_object['instanceId']] = game_object['attackInfo']['targetId']
 
-                if game_object['ownerSeatId'] == game.opponent['systemSeatId']:
-                    game.opponent_played_cards.append(card_details)
+                if game_object.get('blockState') == 'BlockState_Declared':
+                    game_state['card_states']['blockers'][game_object['instanceId']] = game_object['blockInfo']['attackerIds']
 
-            # Register changes in instance ids, update name of card
-            for annotation in game_state_message.get('annotations', []):
-                if 'AnnotationType_ObjectIdChanged' in annotation['type']:
-                    orig_id = new_id = None
-                    for detail in annotation.get('details', []):
-                        if detail['key'] == 'orig_id':
-                            orig_id = detail['valueInt32'][0]
-                        if detail['key'] == 'new_id':
-                            new_id = detail['valueInt32'][0]
+                if game_object['ownerSeatId'] != game_object['controllerSeatId']:
+                    game_state['card_states']['card_controller'][game_object['instanceId']] = \
+                        'player' if game.player['systemSeatId'] == game_object['controllerSeatId'] else 'opponent'
 
-                    if game.instance_mapping.get(orig_id) and not game.instance_mapping.get(new_id):
-                        game.instance_mapping[new_id] = game.instance_mapping[orig_id]
+                self.add_cards_to_mapping(game, game_object)
 
-                    elif game.instance_mapping.get(new_id) and not game.instance_mapping.get(orig_id):
-                        game.instance_mapping[orig_id] = game.instance_mapping[new_id]
+            self.register_changes_in_instance_ids(game, game_state_message.get('annotations', []))
 
-                    elif not game.instance_mapping.get(orig_id) or game.instance_mapping.get(orig_id)['id'] == game.instance_mapping.get(new_id)['id']:
-                        pass
+        else:
+            raise ParserException(f"Got unhandled message type: {message['type']}")
 
-                    elif (
-                            'SubType_Adventure' in game.instance_mapping.get(orig_id, {}).get('subtypes') or
-                            'SubType_Adventure' in game.instance_mapping.get(new_id, {}).get('subtypes')
-                    ):
-                        # Adventure cards have different arena ids, even though they are technically the same card.
-                        pass
+        # Save board state
+        game.game_states.append(game_state)
 
-                    else:
-                        raise ParserException(
-                            f"Mismatch of instance ids: "
-                            f"mapping[orig_id({orig_id})]={game.instance_mapping.get(orig_id)} ; "
-                            f"mapping[new_id({new_id})]={game.instance_mapping.get(new_id)}"
-                        )
+    def add_cards_to_mapping(self, game, game_object):
+        if 'name' not in game_object:
+            # Happens when a card is taken apart, face down
+            return
+
+        card_details = {
+            'id': game_object['grpId'],
+            'instance_id': game_object['instanceId'],
+            'owner': 'player' if game.player['systemSeatId'] == game_object['ownerSeatId'] else 'opponent',
+            'name': NAME_FROM_NAME_ID[game_object['name']],
+            'types': game_object.get('cardTypes'),
+            'subtypes': game_object.get('subtypes'),
+            'url_normal': '',
+            'url_large': '',
+        }
+        self.add_image(card_details)
+        game.instance_mapping[game_object['instanceId']] = card_details
+
+        if game_object['ownerSeatId'] == game.player['systemSeatId']:
+            game.player_played_cards.append(card_details)
+
+        if game_object['ownerSeatId'] == game.opponent['systemSeatId']:
+            game.opponent_played_cards.append(card_details)
+
+    def register_changes_in_instance_ids(self, game, annotations):
+        for annotation in annotations:
+            if 'AnnotationType_ObjectIdChanged' in annotation['type']:
+                orig_id = new_id = None
+                for detail in annotation.get('details', []):
+                    if detail['key'] == 'orig_id':
+                        orig_id = detail['valueInt32'][0]
+                    if detail['key'] == 'new_id':
+                        new_id = detail['valueInt32'][0]
+
+                if game.instance_mapping.get(orig_id) and not game.instance_mapping.get(new_id):
+                    game.instance_mapping[new_id] = game.instance_mapping[orig_id]
+
+                elif game.instance_mapping.get(new_id) and not game.instance_mapping.get(orig_id):
+                    game.instance_mapping[orig_id] = game.instance_mapping[new_id]
+
+                elif not game.instance_mapping.get(orig_id) or game.instance_mapping.get(orig_id)['id'] == game.instance_mapping.get(new_id)['id']:
+                    pass
+
+                elif (
+                        'SubType_Adventure' in game.instance_mapping.get(orig_id, {}).get('subtypes') or
+                        'SubType_Adventure' in game.instance_mapping.get(new_id, {}).get('subtypes')
+                ):
+                    # Adventure cards have different arena ids, even though they are technically the same card.
+                    pass
+
+                else:
+                    raise ParserException(
+                        f"Mismatch of instance ids: "
+                        f"mapping[orig_id({orig_id})]={game.instance_mapping.get(orig_id)} ; "
+                        f"mapping[new_id({new_id})]={game.instance_mapping.get(new_id)}"
+                    )
+
+    def add_image(self, card):
+        card_image_details = self.get_image_from_card(card)
+        card['url_normal'] = card_image_details.get('normal', card_image_details.get('small'))
+        card['url_large'] = card_image_details.get('large', card_image_details.get('normal', card_image_details.get('small')))
+
+    def get_image_from_card(self, card):
+        if card['id'] in self._image_cache:
+            return self._image_cache[card['id']]
+
+        if card['name'] in self._image_cache:
+            return self._image_cache[card['name']]
+
+        key = card['id']
+        response = requests.get(f"https://api.scryfall.com/cards/arena/{key}")
+        if response.status_code == 404:
+            key = card['name']
+            response = requests.get(f"https://api.scryfall.com/cards/named?exact={key}")
+
+        try:
+            self._image_cache[key] = response.json()['image_uris']
+        except KeyError:
+            logger.error(response.json())
+            raise
+        return self._image_cache[key]
+
+
+def _is_board_state_empty(board_state):
+    """Return True if the board state can be ignored because nothing happened on it"""
+    return (
+        board_state['type'] in ['GameStateType_Diff', 'GameStateType_Full'] and
+        'players' not in board_state and
+        'gameObjects' not in board_state and
+        'zones' not in board_state
+    )
