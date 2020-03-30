@@ -195,7 +195,8 @@ class MtgaLogParser:
             raise ParserException(f"Got unhandled message type: {message['type']}")
 
         # Save board state
-        game.game_states.append(game_state)
+        if game.game_states == [] or game_state != game.game_states[-1]:
+            game.game_states.append(game_state)
 
     def add_cards_to_mapping(self, game, game_object):
         if 'name' not in game_object:
@@ -278,13 +279,3 @@ class MtgaLogParser:
             logger.error(response.json())
             raise
         return self._image_cache[key]
-
-
-def _is_board_state_empty(board_state):
-    """Return True if the board state can be ignored because nothing happened on it"""
-    return (
-        board_state['type'] in ['GameStateType_Diff', 'GameStateType_Full'] and
-        'players' not in board_state and
-        'gameObjects' not in board_state and
-        'zones' not in board_state
-    )

@@ -18,6 +18,7 @@
 - Ability to add comments on the game
     - Comments linked to a specific step
     - Ability to mark the game as requesting comments
+    - Audio commentaries
 - Demo / Premium system
   - Demo available without ads for a limited time (# of games ?)
   - Then either with ads or with paid access
