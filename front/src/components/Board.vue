@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container class="zone-game">
     <div class="zone-player-hand"><card v-for="card in zones.player.hand" :key="card.instanceId" :card="card"></card></div>
     <div class="zone-player-lands"><card v-for="card in zones.player.CardType_Land" :key="card.instanceId" :card="card"></card></div>
     <div class="zone-player-creatures"><card v-for="card in zones.player.CardType_Creature" :key="card.instanceId" :card="card"></card></div>
@@ -45,9 +45,9 @@ export default {
     zones() {
       let zones = {
         player: {
-          hand: this.gameState.zones.player.ZoneType_Hand.map(instanceId => this.getCard(instanceId)),
-          library: this.gameState.zones.player.ZoneType_Library.map(instanceId => this.getCard(instanceId)),
-          graveyard: this.gameState.zones.player.ZoneType_Graveyard.map(instanceId => this.getCard(instanceId)),
+          hand: [],
+          library: [],
+          graveyard: [],
           exile: [],
           command: [],
           CardType_Land: [],
@@ -57,9 +57,9 @@ export default {
           CardType_Artifact: [],
         },
         opponent: {
-          hand: this.gameState.zones.opponent.ZoneType_Hand.map(instanceId => this.getCard(instanceId)),
-          library: this.gameState.zones.opponent.ZoneType_Library.map(instanceId => this.getCard(instanceId)),
-          graveyard: this.gameState.zones.opponent.ZoneType_Graveyard.map(instanceId => this.getCard(instanceId)),
+          hand: [],
+          library: [],
+          graveyard: [],
           exile: [],
           command: [],
           CardType_Land: [],
@@ -69,6 +69,18 @@ export default {
           CardType_Artifact: [],
         },
       };
+
+      if (!this.gameState) {
+        return zones;
+      }
+
+      zones.player.hand = this.gameState.zones.player.ZoneType_Hand.map(instanceId => this.getCard(instanceId));
+      zones.player.library = this.gameState.zones.player.ZoneType_Library.map(instanceId => this.getCard(instanceId));
+      zones.player.graveyard = this.gameState.zones.player.ZoneType_Graveyard.map(instanceId => this.getCard(instanceId));
+
+      zones.opponent.hand = this.gameState.zones.opponent.ZoneType_Hand.map(instanceId => this.getCard(instanceId));
+      zones.opponent.library = this.gameState.zones.opponent.ZoneType_Library.map(instanceId => this.getCard(instanceId));
+      zones.opponent.graveyard = this.gameState.zones.opponent.ZoneType_Graveyard.map(instanceId => this.getCard(instanceId));
 
       for (let instanceId of this.gameState.zones.neutral.ZoneType_Exile) {
         let card = this.getCard(instanceId);

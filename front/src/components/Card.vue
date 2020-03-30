@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <v-img :src="card.url_normal" height="100px" contain/>
+  <div class="card">
+    <v-img :src="card.url_normal" contain/>
   </div>
 </template>
 
