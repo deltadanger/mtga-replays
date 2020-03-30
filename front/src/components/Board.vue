@@ -10,6 +10,7 @@
     <div class="zone-player-graveyard"><card v-for="card in zones.player.graveyard" :key="card.instanceId" :card="card"></card></div>
     <div class="zone-player-exile"><card v-for="card in zones.player.exile" :key="card.instanceId" :card="card"></card></div>
     <div class="zone-player-command"><card v-for="card in zones.player.command" :key="card.instanceId" :card="card"></card></div>
+    <div class="zone-player-life">{{ gameState.player_state.player.lifeTotal }}</div>
 
     <div class="zone-opponent-hand"><card v-for="card in zones.opponent.hand" :key="card.instanceId" :card="card"></card></div>
     <div class="zone-opponent-lands"><card v-for="card in zones.opponent.CardType_Land" :key="card.instanceId" :card="card"></card></div>
@@ -21,6 +22,7 @@
     <div class="zone-opponent-graveyard"><card v-for="card in zones.opponent.graveyard" :key="card.instanceId" :card="card"></card></div>
     <div class="zone-opponent-exile"><card v-for="card in zones.opponent.exile" :key="card.instanceId" :card="card"></card></div>
     <div class="zone-opponent-command"><card v-for="card in zones.opponent.command" :key="card.instanceId" :card="card"></card></div>
+    <div class="zone-opponent-life">{{ gameState.player_state.opponent.lifeTotal }}</div>
   </v-container>
 </template>
 
@@ -166,12 +168,18 @@ export default {
     border-radius: 0.35vw;
   }
 
+  .zone-player-life {
+    left: 50%;
+    transform: translate(-50%);
+    bottom: #{ $card-height * 1.2 }vw;
+  }
+
   .zone-player-hand {
     > .card {
       width: #{ $card-width * 1.2 }vw;
     }
 
-    bottom: 9.75vw;
+    bottom: #{ $card-height * 1.2 }vw;
     left: 50%;
 
     @for $i from 1 through 10 {
@@ -233,6 +241,12 @@ export default {
 
   .zone-player-command {
 
+  }
+
+  .zone-opponent-life {
+    left: 50%;
+    transform: translate(-50%);
+    top: #{ $card-height * 0.9 }vw;
   }
 
   .zone-opponent-hand {
