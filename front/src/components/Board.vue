@@ -135,12 +135,18 @@ export default {
   $game-width: 75vw;
   $card-width: 5.5;
   $card-height: $card-width * 1.4;
+  @mixin row-n($row) {
+    > .card {
+      transform: perspective(50vw) translateZ(-#{ $row * 1.4 }vw) rotateX(35deg);
+    }
+    bottom: #{ $card-height * $row * 0.91 + 0.4 }vw;
+  }
 
   @mixin deck-shadow() {
     @for $i from 1 through 60 {
       @for $j from 1 through $i {
         .card:nth-child( #{$j} ):nth-last-child( #{$i - $j} ) {
-          transform: translate(-#{$j / $i}vw, -#{$j / $i / 2}vw);
+          translate: -#{$j / $i}vw -#{$j / $i / 2}vw;
         }
       }
     }
@@ -166,11 +172,12 @@ export default {
     position: absolute;
     width: #{$card-width}vw;
     border-radius: 0.35vw;
+    overflow: hidden;
   }
 
   .zone-player-life {
     left: 50%;
-    transform: translate(-50%);
+    translate: -50%;
     bottom: #{ $card-height * 1.2 }vw;
   }
 
@@ -193,59 +200,106 @@ export default {
   }
 
   .zone-player-lands {
-    > .card {
-      width: #{ $card-width * 0.9 }vw;
-    }
+    @include row-n(2);
 
-    bottom: #{ $card-height * 2.05 }vw;
     left: #{ $card-width * 2.2 }vw;
 
     @for $i from 1 through 20 {
       @for $j from 1 through $i {
         .card:nth-child( #{$j} ):nth-last-child( #{$i - $j} ) {
-          transform: translate(calc(-50% + #{($j - $i / 2) * 4.5 * (4/$i) }vw), 0);
+          translate: calc(-50% + #{($j - $i / 2) * 4.5 * (4/$i) }vw);
         }
       }
     }
   }
 
   .zone-player-creatures {
+    @include row-n(3);
 
+    //left: 50%;
+    left: #{ $card-width * 2.2 }vw;
+
+    @for $i from 1 through 20 {
+      @for $j from 1 through $i {
+        .card:nth-child( #{$j} ):nth-last-child( #{$i - $j} ) {
+          translate: calc(-50% + #{($j - $i / 2) * 4.5 * (4/$i) }vw);
+        }
+      }
+    }
   }
 
   .zone-player-planeswalkers {
+    @include row-n(3);
 
+    right: #{ $card-width * 2.2 }vw;
+
+    @for $i from 1 through 5 {
+      @for $j from 1 through $i {
+        .card:nth-child( #{$j} ):nth-last-child( #{$i - $j} ) {
+          translate: calc(-50% + #{($j - $i / 2) * 4.5 * (4/$i) }vw);
+        }
+      }
+    }
   }
 
   .zone-player-enchantments {
+    @include row-n(2);
 
+    right: #{ $card-width * 2.2 }vw;
+
+    @for $i from 1 through 5 {
+      @for $j from 1 through $i {
+        .card:nth-child( #{$j} ):nth-last-child( #{$i - $j} ) {
+          translate: calc(-50% + #{($j - $i / 2) * 4.5 * (4/$i) }vw);
+        }
+      }
+    }
   }
 
   .zone-player-artifacts {
+    @include row-n(2);
 
+    right: #{ $card-width * 4.2 }vw;
+
+    @for $i from 1 through 10 {
+      @for $j from 1 through $i {
+        .card:nth-child( #{$j} ):nth-last-child( #{$i - $j} ) {
+          translate: calc(-50% + #{($j - $i / 2) * 4.5 * (4/$i) }vw);
+        }
+      }
+    }
   }
 
   .zone-player-library {
-    bottom: #{ $card-height * 1.05 }vw;
+    @include row-n(1);
     left: #{ $card-width * 1.6 }vw;
     @include deck-shadow();
   }
 
   .zone-player-graveyard {
-
+    @include row-n(1);
+    left: 1.5vw;
+    @include deck-shadow();
   }
 
   .zone-player-exile {
-
+    @include row-n(1);
+    left: #{ $card-width * 3 }vw;
+    @include deck-shadow();
   }
 
   .zone-player-command {
+    > .card {
+      width: #{ $card-width * 1.2 }vw;
+    }
 
+    bottom: #{ $card-height * 1.2 }vw;
+    left: 80%;
   }
 
   .zone-opponent-life {
     left: 50%;
-    transform: translate(-50%);
+    translate: -50%;
     top: #{ $card-height * 0.9 }vw;
   }
 
@@ -268,54 +322,101 @@ export default {
   }
 
   .zone-opponent-lands {
-    > .card {
-      width: #{$card-width * 0.85}vw;
-    }
+    @include row-n(5);
 
-    top: #{ $card-height * 0.9 }vw;
     left: #{ $card-width * 2.2 }vw;
 
     @for $i from 1 through 20 {
       @for $j from 1 through $i {
         .card:nth-child( #{$j} ):nth-last-child( #{$i - $j} ) {
-          transform: translate(calc(-50% + #{($j - $i / 2) * 4.5 * (4/$i) }vw), 0);
+          translate: calc(-50% + #{($j - $i / 2) * 4.5 * (4/$i) }vw);
         }
       }
     }
   }
 
   .zone-opponent-creatures {
+    @include row-n(4);
 
+    left: 50%;
+
+    @for $i from 1 through 20 {
+      @for $j from 1 through $i {
+        .card:nth-child( #{$j} ):nth-last-child( #{$i - $j} ) {
+          translate: calc(-50% + #{($j - $i / 2) * 4.5 * (4/$i) }vw);
+        }
+      }
+    }
   }
 
   .zone-opponent-planeswalkers {
+    @include row-n(4);
 
+    right: #{ $card-width * 2.2 }vw;
+
+    @for $i from 1 through 5 {
+      @for $j from 1 through $i {
+        .card:nth-child( #{$j} ):nth-last-child( #{$i - $j} ) {
+          translate: calc(-50% + #{($j - $i / 2) * 4.5 * (4/$i) }vw);
+        }
+      }
+    }
   }
 
   .zone-opponent-enchantments {
+    @include row-n(5);
 
+    right: #{ $card-width * 2.2 }vw;
+
+    @for $i from 1 through 5 {
+      @for $j from 1 through $i {
+        .card:nth-child( #{$j} ):nth-last-child( #{$i - $j} ) {
+          translate: calc(-50% + #{($j - $i / 2) * 4.5 * (4/$i) }vw);
+        }
+      }
+    }
   }
 
   .zone-opponent-artifacts {
+    @include row-n(5);
 
+    right: #{ $card-width * 4.2 }vw;
+
+    @for $i from 1 through 10 {
+      @for $j from 1 through $i {
+        .card:nth-child( #{$j} ):nth-last-child( #{$i - $j} ) {
+          translate: calc(-50% + #{($j - $i / 2) * 4.5 * (4/$i) }vw);
+        }
+      }
+    }
   }
 
   .zone-opponent-library {
-    top: #{ $card-height * 0.15 }vw;
+    @include row-n(6);
+
     right: #{ $card-width * 2.4 }vw;
     @include deck-shadow();
   }
 
   .zone-opponent-graveyard {
-
+    @include row-n(6);
+    right: #{ $card-width + 1 }vw;
+    @include deck-shadow();
   }
 
   .zone-opponent-exile {
-
+    @include row-n(6);
+    left: #{ $card-width * 2.6 }vw;
+    @include deck-shadow();
   }
 
   .zone-opponent-command {
+    > .card {
+      width: #{$card-width * 1}vw;
+    }
 
+    top: 0vw;
+    left: 20%;
   }
 
 </style>
