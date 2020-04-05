@@ -7,7 +7,10 @@
     - Identify and separate the games in a log file
 - Generate a board state from a single log entry
 - Generate a simple UI from a board state
-- Generate a suite of board states for a whole game, ordered and with transition
+- Generate a suite of board states for a whole game, ordered and with play/pause, previous, next buttons
+    - Including stack and targeting
+    - Display number of cards in stacks
+- Simple website ui
 - Upload a log file and store extracted info
 - Web hosting in AWS
 
@@ -25,4 +28,4 @@
   - Premium access makes games hidden
 - Search engine
   - Search for games using specific card, for user, with specific game result
-- Option to watch as spectator (no hand is revealed)
+- Option to watch as spectator (no card is revealed)

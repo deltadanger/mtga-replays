@@ -69,6 +69,7 @@ class MtgaLogParser:
                     i += 1
                     if self.log_lines[i].strip() == "[Message summarized because one or more GameStateMessages exceeded the 50 GameObject or 50 Annotation limit.]":
                         logger.warning(f"Missing game state details: Game {self.current_game_index}, line {self.log_lines[i]}")
+                        # TODO: Add game state anyway, with indication that details are missing
                         continue
 
                     payload = json.loads(self.log_lines[i])
@@ -166,6 +167,7 @@ class MtgaLogParser:
             game_state['card_states']['attackers'] = {}
             game_state['card_states']['blockers'] = {}
             game_state['card_states']['card_controller'] = {}
+            # TODO: Add game_state['card_states']['targeting'] = {}
             for game_object in game_state_message.get('gameObjects', []):
 
                 if game_object['type'] not in ['GameObjectType_Card']:  # TODO: Handle tokens: , 'GameObjectType_Token']:

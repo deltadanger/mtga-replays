@@ -1,0 +1,28 @@
+
+$game-width: 75vw;
+$card-width: 5.5;
+$card-height: $card-width * 1.4;
+@mixin row-n($row) {
+  ::v-deep .card {
+    transform: perspective(50vw) translateZ(-#{ $row * 1.4 }vw) rotateX(35deg);
+  }
+  bottom: #{ $card-height * $row * 0.91 + 0.4 }vw;
+}
+
+@mixin deck-shadow() {
+  @for $i from 1 through 60 {
+    @for $j from 1 through $i {
+      ::v-deep .card:nth-child( #{$j} ):nth-last-child( #{$i - $j} ) {
+        translate: -#{$j / $i}vw -#{$j / $i / 2}vw;
+      }
+    }
+  }
+  //.card {
+  //  box-shadow: -0.5vw -0.3vw 0.5vw 0.0vw rgba(0, 0, 0, 0.2);
+  //}
+}
+
+@mixin crop-card() {
+  border-radius: 4%;
+  overflow: hidden;
+}

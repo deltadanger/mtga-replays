@@ -10,7 +10,6 @@ django-hijack-admin==2.1.10
 django-webpack-loader==0.7.0
 djangorestframework==3.11.0
 idna==2.9
-mysqlclient==1.4.6
 python-dateutil==2.8.1
 pytz==2019.3
 requests==2.23.0

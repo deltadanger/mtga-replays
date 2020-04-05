@@ -1,33 +1,43 @@
 <template>
   <v-container class="zone-game">
-    <div class="zone-player-hand"><card v-for="card in zones.player.hand" :key="card.instanceId" :card="card"></card></div>
-    <div class="zone-player-lands"><card v-for="card in zones.player.CardType_Land" :key="card.instanceId" :card="card"></card></div>
-    <div class="zone-player-creatures"><card v-for="card in zones.player.CardType_Creature" :key="card.instanceId" :card="card"></card></div>
-    <div class="zone-player-planeswalkers"><card v-for="card in zones.player.CardType_Planeswalker" :key="card.instanceId" :card="card"></card></div>
-    <div class="zone-player-enchantments"><card v-for="card in zones.player.CardType_Enchantment" :key="card.instanceId" :card="card"></card></div>
-    <div class="zone-player-artifacts"><card v-for="card in zones.player.CardType_Artifact" :key="card.instanceId" :card="card"></card></div>
-    <div class="zone-player-library"><card v-for="card in zones.player.library" :key="card.instanceId" :card="card"></card></div>
-    <div class="zone-player-graveyard"><card v-for="card in zones.player.graveyard" :key="card.instanceId" :card="card"></card></div>
-    <div class="zone-player-exile"><card v-for="card in zones.player.exile" :key="card.instanceId" :card="card"></card></div>
-    <div class="zone-player-command"><card v-for="card in zones.player.command" :key="card.instanceId" :card="card"></card></div>
+    <cards class="zone-player-hand" :cards="zones.player.hand" @browse="cardsToBrowse = $event" :stacked="zones.player.hand.length > 10"></cards>
+    <cards class="zone-player-lands" :cards="zones.player.CardType_Land" @browse="cardsToBrowse = $event" :stacked="zones.player.CardType_Land.length > 10"></cards>
+    <cards class="zone-player-creatures" :cards="zones.player.CardType_Creature" @browse="cardsToBrowse = $event" :stacked="zones.player.CardType_Creature.length > 20"></cards>
+    <cards class="zone-player-planeswalkers" :cards="zones.player.CardType_Planeswalker" @browse="cardsToBrowse = $event" :stacked="zones.player.CardType_Planeswalker.length > 5"></cards>
+    <cards class="zone-player-enchantments" :cards="zones.player.CardType_Enchantment" @browse="cardsToBrowse = $event" :stacked="zones.player.CardType_Enchantment.length > 10"></cards>
+    <cards class="zone-player-artifacts" :cards="zones.player.CardType_Artifact" @browse="cardsToBrowse = $event" :stacked="zones.player.CardType_Artifact.length > 10"></cards>
+    <cards class="zone-player-library" :cards="zones.player.library" @browse="cardsToBrowse = $event" :stacked="zones.player.library.length > 1"></cards>
+    <cards class="zone-player-graveyard" :cards="zones.player.graveyard" @browse="cardsToBrowse = $event" :stacked="zones.player.graveyard.length > 1"></cards>
+    <cards class="zone-player-exile" :cards="zones.player.exile" @browse="cardsToBrowse = $event" :stacked="zones.player.exile.length > 1"></cards>
+    <cards class="zone-player-command" :cards="zones.player.command" @browse="cardsToBrowse = $event" :stacked="false"></cards>
     <div class="zone-player-life">{{ gameState.player_state.player.lifeTotal }}</div>
 
-    <div class="zone-opponent-hand"><card v-for="card in zones.opponent.hand" :key="card.instanceId" :card="card"></card></div>
-    <div class="zone-opponent-lands"><card v-for="card in zones.opponent.CardType_Land" :key="card.instanceId" :card="card"></card></div>
-    <div class="zone-opponent-creatures"><card v-for="card in zones.opponent.CardType_Creature" :key="card.instanceId" :card="card"></card></div>
-    <div class="zone-opponent-planeswalkers"><card v-for="card in zones.opponent.CardType_Planeswalker" :key="card.instanceId" :card="card"></card></div>
-    <div class="zone-opponent-enchantments"><card v-for="card in zones.opponent.CardType_Enchantment" :key="card.instanceId" :card="card"></card></div>
-    <div class="zone-opponent-artifacts"><card v-for="card in zones.opponent.CardType_Artifact" :key="card.instanceId" :card="card"></card></div>
-    <div class="zone-opponent-library"><card v-for="card in zones.opponent.library" :key="card.instanceId" :card="card"></card></div>
-    <div class="zone-opponent-graveyard"><card v-for="card in zones.opponent.graveyard" :key="card.instanceId" :card="card"></card></div>
-    <div class="zone-opponent-exile"><card v-for="card in zones.opponent.exile" :key="card.instanceId" :card="card"></card></div>
-    <div class="zone-opponent-command"><card v-for="card in zones.opponent.command" :key="card.instanceId" :card="card"></card></div>
+    <cards class="zone-opponent-hand" :cards="zones.opponent.hand" @browse="cardsToBrowse = $event" :stacked="zones.opponent.hand.length > 10"></cards>
+    <cards class="zone-opponent-lands" :cards="zones.opponent.CardType_Land" @browse="cardsToBrowse = $event" :stacked="zones.opponent.CardType_Land.length > 10"></cards>
+    <cards class="zone-opponent-creatures" :cards="zones.opponent.CardType_Creature" @browse="cardsToBrowse = $event" :stacked="zones.opponent.CardType_Creature.length > 20"></cards>
+    <cards class="zone-opponent-planeswalkers" :cards="zones.opponent.CardType_Planeswalker" @browse="cardsToBrowse = $event" :stacked="zones.opponent.CardType_Planeswalker.length > 5"></cards>
+    <cards class="zone-opponent-enchantments" :cards="zones.opponent.CardType_Enchantment" @browse="cardsToBrowse = $event" :stacked="zones.opponent.CardType_Enchantment.length > 10"></cards>
+    <cards class="zone-opponent-artifacts" :cards="zones.opponent.CardType_Artifact" @browse="cardsToBrowse = $event" :stacked="zones.opponent.CardType_Artifact.length > 10"></cards>
+    <cards class="zone-opponent-library" :cards="zones.opponent.library" @browse="cardsToBrowse = $event" :stacked="zones.opponent.library.length > 1"></cards>
+    <cards class="zone-opponent-graveyard" :cards="zones.opponent.graveyard" @browse="cardsToBrowse = $event" :stacked="zones.opponent.graveyard.length > 1"></cards>
+    <cards class="zone-opponent-exile" :cards="zones.opponent.exile" @browse="cardsToBrowse = $event" :stacked="zones.opponent.exile.length > 1"></cards>
+    <cards class="zone-opponent-command" :cards="zones.opponent.command" @browse="cardsToBrowse = $event" :stacked="false"></cards>
     <div class="zone-opponent-life">{{ gameState.player_state.opponent.lifeTotal }}</div>
+
+    <div class="card-viewer elevation-24">
+      <v-img v-if="cardsToBrowse.length === 1" :src="cardsToBrowse[0].url_large"></v-img>
+    </div>
+
+    <v-dialog width="50vw" v-model="showBrowser" @click:outside="cardsToBrowse = []">
+      <card-browser :cards="cardsToBrowse"></card-browser>
+    </v-dialog>
   </v-container>
 </template>
 
 <script>
-import Card from '@/components/Card.vue'
+import Cards from '@/components/Cards.vue'
+import CardBrowser from '@/components/CardBrowser.vue'
+
 import cardBack from '../assets/card-back.jpg'
 
 export default {
@@ -40,7 +50,10 @@ export default {
   },
 
   data() {
-    return {};
+    return {
+      cardsToBrowse: [],
+      showBrowser: false,
+    };
   },
 
   computed: {
@@ -100,11 +113,18 @@ export default {
     },
   },
 
+  watch: {
+    cardsToBrowse() {
+      this.showBrowser = this.cardsToBrowse.length > 1;
+    },
+  },
+
   methods: {
     getCard(instanceId) {
       let card = this.cardsMapping[instanceId];
       if (card === undefined) {
         card = {
+          // Using snake-case to match object returned by API
           instance_id: instanceId,
           owner: "player",
           types: [],
@@ -125,31 +145,23 @@ export default {
   },
 
   components: {
-    Card,
+    Cards,
+    CardBrowser,
   },
 }
 </script>
 
 <style scoped lang="scss">
   @use "sass:math";
-  $game-width: 75vw;
-  $card-width: 5.5;
-  $card-height: $card-width * 1.4;
-  @mixin row-n($row) {
-    > .card {
-      transform: perspective(50vw) translateZ(-#{ $row * 1.4 }vw) rotateX(35deg);
-    }
-    bottom: #{ $card-height * $row * 0.91 + 0.4 }vw;
-  }
+  @import '@/assets/constants.scss';
 
-  @mixin deck-shadow() {
-    @for $i from 1 through 60 {
-      @for $j from 1 through $i {
-        .card:nth-child( #{$j} ):nth-last-child( #{$i - $j} ) {
-          translate: -#{$j / $i}vw -#{$j / $i / 2}vw;
-        }
-      }
-    }
+  .card-viewer {
+    position: absolute;
+    top: 50%;
+    translate: 0 -50%;
+    left: 10%;
+    width: 10vw;
+    @include crop-card();
   }
 
   .zone-game {
@@ -168,11 +180,10 @@ export default {
     overflow: hidden;
   }
 
-  .card {
+  ::v-deep .card {
     position: absolute;
     width: #{$card-width}vw;
-    border-radius: 0.35vw;
-    overflow: hidden;
+    @include crop-card()
   }
 
   .zone-player-life {
@@ -182,7 +193,7 @@ export default {
   }
 
   .zone-player-hand {
-    > .card {
+    ::v-deep .card {
       width: #{ $card-width * 1.2 }vw;
     }
 
@@ -191,7 +202,7 @@ export default {
 
     @for $i from 1 through 10 {
       @for $j from 1 through $i {
-        .card:nth-child( #{$j} ):nth-last-child( #{$i - $j} ) {
+        ::v-deep .card:nth-child( #{$j} ):nth-last-child( #{$i - $j} ) {
           $offset: math.abs($j - $i / 2);
           transform: translate(calc(-50% + #{($j - $i / 2) * 4.5}vw), #{math.pow($offset, 2) * 0.35 + 2}vw) rotate(#{($j - $i / 2) * 7}deg);
         }
@@ -206,7 +217,7 @@ export default {
 
     @for $i from 1 through 20 {
       @for $j from 1 through $i {
-        .card:nth-child( #{$j} ):nth-last-child( #{$i - $j} ) {
+        ::v-deep .card:nth-child( #{$j} ):nth-last-child( #{$i - $j} ) {
           translate: calc(-50% + #{($j - $i / 2) * 4.5 * (4/$i) }vw);
         }
       }
@@ -221,7 +232,7 @@ export default {
 
     @for $i from 1 through 20 {
       @for $j from 1 through $i {
-        .card:nth-child( #{$j} ):nth-last-child( #{$i - $j} ) {
+        ::v-deep .card:nth-child( #{$j} ):nth-last-child( #{$i - $j} ) {
           translate: calc(-50% + #{($j - $i / 2) * 4.5 * (4/$i) }vw);
         }
       }
@@ -235,7 +246,7 @@ export default {
 
     @for $i from 1 through 5 {
       @for $j from 1 through $i {
-        .card:nth-child( #{$j} ):nth-last-child( #{$i - $j} ) {
+        ::v-deep .card:nth-child( #{$j} ):nth-last-child( #{$i - $j} ) {
           translate: calc(-50% + #{($j - $i / 2) * 4.5 * (4/$i) }vw);
         }
       }
@@ -249,7 +260,7 @@ export default {
 
     @for $i from 1 through 5 {
       @for $j from 1 through $i {
-        .card:nth-child( #{$j} ):nth-last-child( #{$i - $j} ) {
+        ::v-deep .card:nth-child( #{$j} ):nth-last-child( #{$i - $j} ) {
           translate: calc(-50% + #{($j - $i / 2) * 4.5 * (4/$i) }vw);
         }
       }
@@ -263,7 +274,7 @@ export default {
 
     @for $i from 1 through 10 {
       @for $j from 1 through $i {
-        .card:nth-child( #{$j} ):nth-last-child( #{$i - $j} ) {
+        ::v-deep .card:nth-child( #{$j} ):nth-last-child( #{$i - $j} ) {
           translate: calc(-50% + #{($j - $i / 2) * 4.5 * (4/$i) }vw);
         }
       }
@@ -289,7 +300,7 @@ export default {
   }
 
   .zone-player-command {
-    > .card {
+    ::v-deep .card {
       width: #{ $card-width * 1.2 }vw;
     }
 
@@ -304,7 +315,7 @@ export default {
   }
 
   .zone-opponent-hand {
-    > .card {
+    ::v-deep .card {
       width: #{$card-width * 1}vw;
     }
 
@@ -313,7 +324,7 @@ export default {
 
     @for $i from 1 through 10 {
       @for $j from 1 through $i {
-        .card:nth-child( #{$j} ):nth-last-child( #{$i - $j} ) {
+        ::v-deep .card:nth-child( #{$j} ):nth-last-child( #{$i - $j} ) {
           $offset: math.abs($j - $i / 2);
           transform: translate(calc(-50% + #{($j - $i / 2) * -4.5}vw), #{math.pow($offset, 2) * -0.35 - 2}vw) rotate(#{180 + ($j - $i / 2) * 7}deg);
         }
@@ -328,7 +339,7 @@ export default {
 
     @for $i from 1 through 20 {
       @for $j from 1 through $i {
-        .card:nth-child( #{$j} ):nth-last-child( #{$i - $j} ) {
+        ::v-deep .card:nth-child( #{$j} ):nth-last-child( #{$i - $j} ) {
           translate: calc(-50% + #{($j - $i / 2) * 4.5 * (4/$i) }vw);
         }
       }
@@ -342,7 +353,7 @@ export default {
 
     @for $i from 1 through 20 {
       @for $j from 1 through $i {
-        .card:nth-child( #{$j} ):nth-last-child( #{$i - $j} ) {
+        ::v-deep .card:nth-child( #{$j} ):nth-last-child( #{$i - $j} ) {
           translate: calc(-50% + #{($j - $i / 2) * 4.5 * (4/$i) }vw);
         }
       }
@@ -356,7 +367,7 @@ export default {
 
     @for $i from 1 through 5 {
       @for $j from 1 through $i {
-        .card:nth-child( #{$j} ):nth-last-child( #{$i - $j} ) {
+        ::v-deep .card:nth-child( #{$j} ):nth-last-child( #{$i - $j} ) {
           translate: calc(-50% + #{($j - $i / 2) * 4.5 * (4/$i) }vw);
         }
       }
@@ -370,7 +381,7 @@ export default {
 
     @for $i from 1 through 5 {
       @for $j from 1 through $i {
-        .card:nth-child( #{$j} ):nth-last-child( #{$i - $j} ) {
+        ::v-deep .card:nth-child( #{$j} ):nth-last-child( #{$i - $j} ) {
           translate: calc(-50% + #{($j - $i / 2) * 4.5 * (4/$i) }vw);
         }
       }
@@ -384,7 +395,7 @@ export default {
 
     @for $i from 1 through 10 {
       @for $j from 1 through $i {
-        .card:nth-child( #{$j} ):nth-last-child( #{$i - $j} ) {
+        ::v-deep .card:nth-child( #{$j} ):nth-last-child( #{$i - $j} ) {
           translate: calc(-50% + #{($j - $i / 2) * 4.5 * (4/$i) }vw);
         }
       }
@@ -411,7 +422,7 @@ export default {
   }
 
   .zone-opponent-command {
-    > .card {
+    ::v-deep .card {
       width: #{$card-width * 1}vw;
     }
 
