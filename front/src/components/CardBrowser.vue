@@ -1,11 +1,12 @@
 <template>
   <v-row ref="scroller" class="image-browser" @wheel="onWheel">
     <v-img
-      v-for="card in cards"
+      v-for="(card, index) in cards"
       :key="card.instance_id"
       class="card-slide"
       :src="card.url_large"
       :lazy-src="cardBackSmall"
+      @load="onLoad(index)"
     ></v-img>
   </v-row>
 </template>
@@ -23,13 +24,13 @@ export default {
   data() {
     return {
       cardBackSmall,
+      triggerOnLoad: true,
     }
   },
 
   watch: {
     cards() {
-      console.log(123);
-      this.$nextTick(() => this.$refs.scroller.scrollLeft = 99999);
+      this.triggerOnLoad = true;
     },
   },
 
@@ -37,6 +38,15 @@ export default {
     onWheel(event) {
       this.$refs.scroller.scrollLeft += event.deltaY * 30;
     },
+    onLoad(position) {
+      if (position === this.cards.length - 1) {
+        this.triggerOnLoad = false;
+      }
+
+      if (this.triggerOnLoad) {
+        this.$refs.scroller.scrollLeft = 99999
+      }
+    }
   },
 }
 </script>
