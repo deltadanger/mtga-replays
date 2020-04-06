@@ -24,6 +24,8 @@
     <cards class="zone-opponent-command" :cards="zones.opponent.command" @browse="cardsToBrowse = $event" :stacked="false"></cards>
     <div class="zone-opponent-life">{{ gameState.player_state.opponent.lifeTotal }}</div>
 
+    <cards class="zone-stack" :cards="zones.neutral.stack" @browse="cardsToBrowse = $event" :stacked="false"></cards>
+
     <div class="card-viewer elevation-24">
       <v-img v-if="cardsToBrowse.length === 1" :src="cardsToBrowse[0].url_large"></v-img>
     </div>
@@ -83,6 +85,9 @@ export default {
           CardType_Enchantment: [],
           CardType_Artifact: [],
         },
+        neutral: {
+          stack: [],
+        },
       };
 
       if (!this.gameState) {
@@ -100,13 +105,19 @@ export default {
       for (let instanceId of this.gameState.zones.neutral.ZoneType_Exile) {
         let card = this.getCard(instanceId);
         let controller = this.gameState.card_states.card_controller[instanceId] || card.owner;
-        zones[controller].exile.push(card)
+        zones[controller].exile.push(card);
       }
 
       for (let instanceId of this.gameState.zones.neutral.ZoneType_Battlefield) {
         let card = this.getCard(instanceId);
         let controller = this.gameState.card_states.card_controller[instanceId] || card.owner;
-        zones[controller][card.types[0]].push(card)
+        zones[controller][card.types[0]].push(card);
+      }
+
+      for (let instanceId of this.gameState.zones.neutral.ZoneType_Stack) {
+        let card = this.getCard(instanceId);
+        let controller = this.gameState.card_states.card_controller[instanceId] || card.owner;
+        zones.neutral.stack.push(card);
       }
 
       return zones;
@@ -156,11 +167,10 @@ export default {
   @import '@/assets/constants.scss';
 
   .card-viewer {
-    position: absolute;
     top: 50%;
     translate: 0 -50%;
     left: 10%;
-    width: 10vw;
+    width: #{$card-width * 2}vw;
     @include crop-card();
   }
 
@@ -227,8 +237,7 @@ export default {
   .zone-player-creatures {
     @include row-n(3);
 
-    //left: 50%;
-    left: #{ $card-width * 2.2 }vw;
+    left: 50%;
 
     @for $i from 1 through 20 {
       @for $j from 1 through $i {
@@ -428,6 +437,17 @@ export default {
 
     top: 0vw;
     left: 20%;
+  }
+
+  .zone-stack {
+    top: 50%;
+    translate: 0 -50%;
+    right: 10%;
+
+    ::v-deep .card {
+      position: relative;
+      width: #{$card-width * 1.5}vw;
+    }
   }
 
 </style>
